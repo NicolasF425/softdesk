@@ -5,15 +5,18 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     age = models.IntegerField(null=True)
     created_time = models.DateTimeField(auto_now_add=True)
+    can_be_contcted = models.BooleanField()
+    can_data_be_shared = models.BooleanField()
 
 
-class Project():
+class Project(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
+    author = models.ForeignKey(to='Contributor',  on_delete=models.CASCADE, related_name='projects')
 
 
-class Contributor():
+class Contributor(models.Model):
     user = User
-    project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(to=Project, on_delete=models.CASCADE, related_name='contributors')
 
 
 class ProjectContributors():
@@ -21,13 +24,49 @@ class ProjectContributors():
     contributor = models.ForeignKey(to=Contributor)
 
 
-class Issue():
+class Issue(models.Model):
+    PRIORITY_CHOICES = [
+        ('LOW', 'Low'),
+        ('MEDIUM', 'Medium'),
+        ('HIGH', 'High'),
+    ]
+
+    TYPE_CHOICES = [
+        ('BUG', 'Bug'),
+        ('FEATURE', 'Feature'),
+        ('TASK', 'Task')
+    ]
+
+    STATUS_CHOICES = [
+        ('TO DO', 'To Do'),
+        ('IN PROGRESS', 'In Progress'),
+        ('FINISHED', 'Finished'),
+    ]
+
     project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
-    contributor = models.ForeignKey(to=Contributor)
+    author = models.ForeignKey(to=Contributor)
     created_time = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=128)
+    description = models.CharField(max_length=1024)
+    priority = models.CharField(
+        max_length=10,
+        choices=PRIORITY_CHOICES,
+        default='MEDIUM'
+    )
+    type = models.CharField(
+        max_length=10,
+        choices=TYPE_CHOICES,
+        default='TASK'
+    )
+    status = models.CharField(
+        max_length=15,
+        choices=TYPE_CHOICES,
+        default='TO DO'
+    )
 
 
-class Comment():
+class Comment(models.Model):
     Issue = models.ForeignKey(to=Issue, on_delete=models.CASCADE)
-    contributor = models.ForeignKey(to=Contributor)
+    author = models.ForeignKey(to=Contributor)
     created_time = models.DateTimeField(auto_now_add=True)
+    description = models.CharField(max_length=1024)
