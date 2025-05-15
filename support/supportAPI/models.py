@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, Group, Permission
 
 
 class User(AbstractUser):
@@ -8,6 +8,26 @@ class User(AbstractUser):
     can_be_contcted = models.BooleanField()
     can_data_be_shared = models.BooleanField()
 
+    # Fix the groups field with a unique related_name
+    groups = models.ManyToManyField(
+        Group,
+        verbose_name='groups',
+        blank=True,
+        help_text='The groups this user belongs to.',
+        related_name='supportapi_user_set',  # This is the fix
+        related_query_name='user',
+    )
+
+    # Fix the user_permissions field with a unique related_name
+    user_permissions = models.ManyToManyField(
+        Permission,
+        verbose_name='user permissions',
+        blank=True,
+        help_text='Specific permissions for this user.',
+        related_name='supportapi_user_set',  # This is the fix
+        related_query_name='user',
+    )
+
 
 class Project(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
@@ -15,13 +35,13 @@ class Project(models.Model):
 
 
 class Contributor(models.Model):
-    user = User
+    user = models.ForeignKey(to=User, on_delete=models.CASCADE, related_name='user')
     project = models.ForeignKey(to=Project, on_delete=models.CASCADE, related_name='contributors')
 
 
 class ProjectContributors():
     project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
-    contributor = models.ForeignKey(to=Contributor)
+    contributor = models.ForeignKey(to=Contributor, on_delete=models.CASCADE)
 
 
 class Issue(models.Model):
@@ -44,7 +64,7 @@ class Issue(models.Model):
     ]
 
     project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
-    author = models.ForeignKey(to=Contributor)
+    author = models.ForeignKey(to=Contributor, on_delete=models.CASCADE)
     created_time = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=128)
     description = models.CharField(max_length=1024)
@@ -67,6 +87,6 @@ class Issue(models.Model):
 
 class Comment(models.Model):
     Issue = models.ForeignKey(to=Issue, on_delete=models.CASCADE)
-    author = models.ForeignKey(to=Contributor)
+    author = models.ForeignKey(to=Contributor, on_delete=models.CASCADE)
     created_time = models.DateTimeField(auto_now_add=True)
     description = models.CharField(max_length=1024)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from models import User, Project, Issue, Comment
+from supportAPI.models import User, Project, Issue, Comment
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
