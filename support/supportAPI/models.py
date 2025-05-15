@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 class User(AbstractUser):
     age = models.IntegerField(null=True)
     created_time = models.DateTimeField(auto_now_add=True)
-    can_be_contcted = models.BooleanField()
+    can_be_contacted = models.BooleanField()
     can_data_be_shared = models.BooleanField()
 
     # Fix the groups field with a unique related_name
@@ -31,17 +31,14 @@ class User(AbstractUser):
 
 class Project(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey(to='Contributor',  on_delete=models.CASCADE, related_name='projects')
+    author = models.ForeignKey(to='User',  on_delete=models.CASCADE, related_name='projects')
+    name = models.CharField(max_length=128, default="Projet")
+    description = models.CharField(max_length=1024, default="Description")
 
 
 class Contributor(models.Model):
-    user = models.ForeignKey(to=User, on_delete=models.CASCADE, related_name='user')
-    project = models.ForeignKey(to=Project, on_delete=models.CASCADE, related_name='contributors')
-
-
-class ProjectContributors():
+    user = models.ForeignKey(to=User, on_delete=models.CASCADE)
     project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
-    contributor = models.ForeignKey(to=Contributor, on_delete=models.CASCADE)
 
 
 class Issue(models.Model):
@@ -64,10 +61,10 @@ class Issue(models.Model):
     ]
 
     project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
-    author = models.ForeignKey(to=Contributor, on_delete=models.CASCADE)
+    author = models.ForeignKey(to=User, on_delete=models.CASCADE)
     created_time = models.DateTimeField(auto_now_add=True)
-    name = models.CharField(max_length=128)
-    description = models.CharField(max_length=1024)
+    name = models.CharField(max_length=128,  default="Issue")
+    description = models.CharField(max_length=1024,  default="Description")
     priority = models.CharField(
         max_length=10,
         choices=PRIORITY_CHOICES,
@@ -80,13 +77,13 @@ class Issue(models.Model):
     )
     status = models.CharField(
         max_length=15,
-        choices=TYPE_CHOICES,
+        choices=STATUS_CHOICES,
         default='TO DO'
     )
 
 
 class Comment(models.Model):
     Issue = models.ForeignKey(to=Issue, on_delete=models.CASCADE)
-    author = models.ForeignKey(to=Contributor, on_delete=models.CASCADE)
+    author = models.ForeignKey(to=User, on_delete=models.CASCADE)
     created_time = models.DateTimeField(auto_now_add=True)
-    description = models.CharField(max_length=1024)
+    description = models.CharField(max_length=1024,  default="Commentaire")

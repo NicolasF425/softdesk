@@ -1,25 +1,33 @@
-from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.viewsets import ModelViewSet
 
 from supportAPI.models import Project, Issue, Comment
 from supportAPI.serializers import ProjectSerializer, IssueSerializer, CommentSerializer
 
 
-class ProjectViewset(ReadOnlyModelViewSet):
+class ProjectViewset(ModelViewSet):
     serializer_class = ProjectSerializer
 
     def get_queryset(self):
         return Project.objects.all()
 
 
-class IssueViewset(ReadOnlyModelViewSet):
+class IssueViewset(ModelViewSet):
     serializer_class = IssueSerializer
 
     def get_queryset(self):
-        return Issue.objects.all()
+        queryset = Issue.objects.all()
+        project_id = self.request.GET.get('project_id')
+        if project_id is not None:
+            queryset = queryset.filter(project_id=project_id)
+        return queryset
 
 
-class CommentViewset(ReadOnlyModelViewSet):
+class CommentViewset(ModelViewSet):
     serializer_class = CommentSerializer
 
     def get_queryset(self):
-        return Comment.objects.all()
+        queryset = Comment.objects.all()
+        issue_id = self.request.GET.get('issue_id')
+        if issue_id is not None:
+            queryset = queryset.filter(issue_id=issue_id)
+        return queryset

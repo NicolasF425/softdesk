@@ -1,33 +1,37 @@
 from rest_framework import serializers
-from supportAPI.models import User, Project, Issue, Comment
+from supportAPI.models import User, Contributor, Project, Issue, Comment
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
         fields = ['id', 'date_created', 'username']
 
 
-class ProjectSerializer(serializers.HyperlinkedModelSerializer):
+class ContributorSerializer(serializers.ModelSerializer):
 
-    contributors = serializers.SerializerMethodField()
-    issues = serializers.SerializerMethodField()
+    class Meta:
+        model = Contributor
+        fields = ['id', 'user', 'project']
+
+
+class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ['id', 'date_created', 'username', 'contributors', 'issues']
+        fields = ['id', 'created_time', 'name', 'description']
 
 
-class IssueSerializer(serializers.HyperlinkedModelSerializer):
+class IssueSerializer(serializers.ModelSerializer):
     comments = serializers.SerializerMethodField()
 
     class Meta:
         model = Issue
-        fields = ['id', 'date_created', 'contributor', 'comments', 'project']
+        fields = ['id', 'created_time', 'name', 'description', 'user', 'project']
 
 
-class CommentSerializer(serializers.HyperlinkedModelSerializer):
+class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = ['id', 'date_created', 'contributor', 'issue']
+        fields = ['id', 'created_time', 'description', 'user', 'issue']
