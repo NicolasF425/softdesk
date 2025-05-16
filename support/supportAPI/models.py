@@ -31,7 +31,7 @@ class User(AbstractUser):
 
 class Project(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey(to='User',  on_delete=models.CASCADE, related_name='projects')
+    author = models.ForeignKey(to='User',  on_delete=models.CASCADE, related_name='project')
     name = models.CharField(max_length=128, default="Projet")
     description = models.CharField(max_length=1024, default="Description")
 
@@ -83,7 +83,7 @@ class Issue(models.Model):
 
 
 class Comment(models.Model):
-    Issue = models.ForeignKey(to=Issue, on_delete=models.CASCADE)
+    issue = models.ForeignKey(to=Issue, on_delete=models.CASCADE)
     author = models.ForeignKey(to=User, on_delete=models.CASCADE)
     created_time = models.DateTimeField(auto_now_add=True)
-    description = models.CharField(max_length=1024,  default="Commentaire")
+    description = models.CharField(max_length=1024, default="Commentaire")

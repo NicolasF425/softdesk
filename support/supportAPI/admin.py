@@ -4,17 +4,17 @@ from supportAPI.models import User, Contributor, Project, Issue, Comment
 
 class UserAdmin(admin.ModelAdmin):
 
-    list_display = ('username', 'age', 'can_be_contacted', 'can_data_be_shared')
+    list_display = ('id', 'username', 'age', 'can_be_contacted', 'can_data_be_shared')
 
 
 class ContributorAdmin(admin.ModelAdmin):
 
-    list_display = ('user', 'project')
+    list_display = ('id', 'user', 'project')
 
 
 class ProjectAdmin(admin.ModelAdmin):
 
-    list_display = ('name', 'description')
+    list_display = ('id', 'name', 'description', 'author')
 
 
 class IssueAdmin(admin.ModelAdmin):

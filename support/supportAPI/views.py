@@ -1,7 +1,22 @@
 from rest_framework.viewsets import ModelViewSet
 
-from supportAPI.models import Project, Issue, Comment
-from supportAPI.serializers import ProjectSerializer, IssueSerializer, CommentSerializer
+from supportAPI.models import User, Contributor, Project, Issue, Comment
+from supportAPI.serializers import UserSerializer, ContributorSerializer, ProjectSerializer
+from supportAPI.serializers import IssueSerializer, CommentSerializer
+
+
+class UserViewset(ModelViewSet):
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        return User.objects.all()
+
+
+class ContributorViewset(ModelViewSet):
+    serializer_class = ContributorSerializer
+
+    def get_queryset(self):
+        return Contributor.objects.all()
 
 
 class ProjectViewset(ModelViewSet):
@@ -9,6 +24,11 @@ class ProjectViewset(ModelViewSet):
 
     def get_queryset(self):
         return Project.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        # Définir automatiquement l'auteur comme l'utilisateur actuel
+        # request.data['author'] = request.user.id
+        return super().create(request, *args, **kwargs)
 
 
 class IssueViewset(ModelViewSet):
