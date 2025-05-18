@@ -25,11 +25,6 @@ class ProjectViewset(ModelViewSet):
     def get_queryset(self):
         return Project.objects.all()
 
-    def create(self, request, *args, **kwargs):
-        # Définir automatiquement l'auteur comme l'utilisateur actuel
-        # request.data['author'] = request.user.id
-        return super().create(request, *args, **kwargs)
-
 
 class IssueViewset(ModelViewSet):
     serializer_class = IssueSerializer

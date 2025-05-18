@@ -14,7 +14,7 @@ class ContributorAdmin(admin.ModelAdmin):
 
 class ProjectAdmin(admin.ModelAdmin):
 
-    list_display = ('id', 'name', 'description', 'author')
+    list_display = ('id', 'name', 'description', 'author', 'created_time')
 
 
 class IssueAdmin(admin.ModelAdmin):

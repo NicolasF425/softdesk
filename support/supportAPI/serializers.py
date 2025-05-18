@@ -21,8 +21,25 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ['id', 'name', 'description', 'author']
-        read_only_fields = ['created_time']
+        fields = ['id', 'author', 'name', 'description', 'created_time']
+        read_only_fields = ['id', 'author', 'created_time']
+
+    def create(self, validated_data):
+
+        # TEMP
+        user = User.objects.first()  # ou un utilisateur spécifique
+        # Récupérer l'utilisateur de la requête
+        # user = self.context['request'].user
+
+        # Créer le projet avec les données fournies
+        project = Project.objects.create(author=user, **validated_data)
+
+        Contributor.objects.create(
+            user=user,
+            project=project,
+        )
+
+        return project
 
 
 class IssueSerializer(serializers.ModelSerializer):

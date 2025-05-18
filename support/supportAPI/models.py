@@ -35,10 +35,16 @@ class Project(models.Model):
     name = models.CharField(max_length=128, default="Projet")
     description = models.CharField(max_length=1024, default="Description")
 
+    def __str__(self):
+        return self.name
+
 
 class Contributor(models.Model):
     user = models.ForeignKey(to=User, on_delete=models.CASCADE)
     project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'project')
 
 
 class Issue(models.Model):
