@@ -32,6 +32,25 @@ class ProjectViewset(ModelViewSet):
             return self.detail_serializer_class
         return super().get_serializer_class()
 
+    '''
+    def create(self, request, *args, **kwargs):
+
+        # TEMP
+        user = User.objects.get(id=1)  # ou un utilisateur spécifique
+        # Récupérer l'utilisateur de la requête
+        # user = self.context['request'].user
+
+        # Créer le projet avec les données fournies
+        project = Project.objects.create(author=user)
+
+        Contributor.objects.create(
+            user=user,
+            project=project,
+        )
+
+        return project
+        '''
+
 
 class IssueViewset(ModelViewSet):
     serializer_class = IssueListSerializer

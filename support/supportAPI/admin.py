@@ -19,12 +19,12 @@ class ProjectAdmin(admin.ModelAdmin):
 
 class IssueAdmin(admin.ModelAdmin):
 
-    list_display = ('name', 'description')
+    list_display = ('id', 'author', 'description')
 
 
 class CommentAdmin(admin.ModelAdmin):
 
-    list_display = ('description',)
+    list_display = ('id', 'author', 'issue', 'description',)
 
 
 admin.site.register(User, UserAdmin)

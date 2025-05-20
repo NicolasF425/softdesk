@@ -30,18 +30,18 @@ class User(AbstractUser):
 
 
 class Project(models.Model):
-    created_time = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey(to='User',  on_delete=models.CASCADE, related_name='project')
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=128, default="Projet")
     description = models.CharField(max_length=1024, default="Description")
+    created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
 
 
 class Contributor(models.Model):
-    user = models.ForeignKey(to=User, on_delete=models.CASCADE)
-    project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('user', 'project')
@@ -66,8 +66,8 @@ class Issue(models.Model):
         ('FINISHED', 'Finished'),
     ]
 
-    project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
-    author = models.ForeignKey(to=User, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
     created_time = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=128,  default="Issue")
     description = models.CharField(max_length=1024,  default="Description")
@@ -89,7 +89,7 @@ class Issue(models.Model):
 
 
 class Comment(models.Model):
-    issue = models.ForeignKey(to=Issue, on_delete=models.CASCADE)
-    author = models.ForeignKey(to=User, on_delete=models.CASCADE)
+    issue = models.ForeignKey(Issue, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
     created_time = models.DateTimeField(auto_now_add=True)
     description = models.CharField(max_length=1024, default="Commentaire")
