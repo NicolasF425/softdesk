@@ -1,5 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
-
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from .permissions import IsOwnerOrReadOnly
 from supportAPI.models import User, Contributor, Project, Issue, Comment
 from supportAPI.serializers import UserSerializer, ContributorSerializer
 from supportAPI.serializers import ProjectDetailSerializer, ProjectListSerializer
@@ -7,13 +9,21 @@ from supportAPI.serializers import IssueDetailSerializer, IssueListSerializer, C
 
 
 class UserViewset(ModelViewSet):
+    permission_classes = [IsAuthenticated]
     serializer_class = UserSerializer
 
     def get_queryset(self):
         return User.objects.all()
 
 
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = UserSerializer
+
+
 class ContributorViewset(ModelViewSet):
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
     serializer_class = ContributorSerializer
 
     def get_queryset(self):
@@ -21,6 +31,7 @@ class ContributorViewset(ModelViewSet):
 
 
 class ProjectViewset(ModelViewSet):
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
     serializer_class = ProjectListSerializer
     detail_serializer_class = ProjectDetailSerializer
 
@@ -32,27 +43,19 @@ class ProjectViewset(ModelViewSet):
             return self.detail_serializer_class
         return super().get_serializer_class()
 
-    '''
-    def create(self, request, *args, **kwargs):
+    def perform_create(self, serializer):
+        # Sauvegarder le projet avec l'auteur
+        project = serializer.save(author=self.request.user)
 
-        # TEMP
-        user = User.objects.get(id=1)  # ou un utilisateur spécifique
-        # Récupérer l'utilisateur de la requête
-        # user = self.context['request'].user
-
-        # Créer le projet avec les données fournies
-        project = Project.objects.create(author=user)
-
+        # Créer le contributeur automatiquement
         Contributor.objects.create(
-            user=user,
+            user=self.request.user,
             project=project,
         )
 
-        return project
-        '''
-
 
 class IssueViewset(ModelViewSet):
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
     serializer_class = IssueListSerializer
     detail_serializer_class = IssueDetailSerializer
 
@@ -70,6 +73,7 @@ class IssueViewset(ModelViewSet):
 
 
 class CommentViewset(ModelViewSet):
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
     serializer_class = CommentSerializer
 
     def get_queryset(self):

@@ -3,10 +3,10 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 
 
 class User(AbstractUser):
-    age = models.IntegerField(null=True)
+    age = models.IntegerField(null=False)
     created_time = models.DateTimeField(auto_now_add=True)
-    can_be_contacted = models.BooleanField()
-    can_data_be_shared = models.BooleanField()
+    can_be_contacted = models.BooleanField(default=True)
+    can_data_be_shared = models.BooleanField(default=True)
 
     # Fix the groups field with a unique related_name
     groups = models.ManyToManyField(

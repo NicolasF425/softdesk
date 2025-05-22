@@ -1,10 +1,20 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from supportAPI.models import User, Contributor, Project, Issue, Comment
 
 
 class UserAdmin(admin.ModelAdmin):
 
     list_display = ('id', 'username', 'age', 'can_be_contacted', 'can_data_be_shared')
+
+    fieldsets = BaseUserAdmin.fieldsets + (
+        ('Informations supplémentaires', {'fields': ('age', 'can_be_contacted', 'can_data_be_shared')}),
+    )
+
+    # Pour l'ajout d'utilisateurs
+    add_fieldsets = BaseUserAdmin.add_fieldsets + (
+        ('Informations supplémentaires', {'fields': ('age', 'can_be_contacted', 'can_data_be_shared')}),
+    )
 
 
 class ContributorAdmin(admin.ModelAdmin):
