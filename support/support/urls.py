@@ -4,7 +4,8 @@ from rest_framework import routers
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from supportAPI.views import UserViewset, ContributorViewset, ProjectViewset, IssueViewset, CommentViewset
+from supportAPI.views import ContributorViewSet, ProjectViewSet, IssueViewSet, CommentViewSet
+from user.views import UserViewset
 
 
 # Création du routeur
@@ -12,10 +13,10 @@ router = routers.SimpleRouter()
 # Déclaration des url basée sur le mot clé de la classe et de la view
 # afin que l’url générée soit celle que nous souhaitons ‘/api/xxxxx/’
 router.register('user', UserViewset, basename='user')
-router.register('contributor', ContributorViewset, basename='contributor')
-router.register('project', ProjectViewset, basename='project')
-router.register('issue', IssueViewset, basename='issue')
-router.register('comment', CommentViewset, basename='comment')
+router.register('contributor', ContributorViewSet, basename='contributor')
+router.register('project', ProjectViewSet, basename='project')
+router.register('issue', IssueViewSet, basename='issue')
+router.register('comment', CommentViewSet, basename='comment')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

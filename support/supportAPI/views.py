@@ -1,42 +1,34 @@
 from rest_framework.viewsets import ModelViewSet
-from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from .permissions import IsOwnerOrReadOnly
-from supportAPI.models import User, Contributor, Project, Issue, Comment
-from supportAPI.serializers import UserSerializer, ContributorSerializer
+from rest_framework.permissions import IsAuthenticated
+from .permissions import IsOwnerOrReadOnly, IsProjectContributor
+from supportAPI.models import Contributor, Issue, Comment
+from supportAPI.serializers import ContributorSerializer
 from supportAPI.serializers import ProjectDetailSerializer, ProjectListSerializer
 from supportAPI.serializers import IssueDetailSerializer, IssueListSerializer, CommentSerializer
 
 
-class UserViewset(ModelViewSet):
+class ContributorViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
-    serializer_class = UserSerializer
-
-    def get_queryset(self):
-        return User.objects.all()
-
-
-class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    permission_classes = (AllowAny,)
-    serializer_class = UserSerializer
-
-
-class ContributorViewset(ModelViewSet):
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
     serializer_class = ContributorSerializer
 
     def get_queryset(self):
         return Contributor.objects.all()
 
 
-class ProjectViewset(ModelViewSet):
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+class ProjectViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated, IsProjectContributor, IsOwnerOrReadOnly]
     serializer_class = ProjectListSerializer
     detail_serializer_class = ProjectDetailSerializer
 
     def get_queryset(self):
-        return Project.objects.all()
+        """
+        Retourne seulement les issues des projets où l'utilisateur est contributeur
+        """
+        user_projects = Contributor.objects.filter(
+            user=self.request.user
+        ).values_list('project_id', flat=True)
+
+        return Issue.objects.filter(project_id__in=user_projects).select_related('project', 'author')
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'update', 'partial_update']:
@@ -54,13 +46,22 @@ class ProjectViewset(ModelViewSet):
         )
 
 
-class IssueViewset(ModelViewSet):
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+class IssueViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated, IsProjectContributor, IsOwnerOrReadOnly]
     serializer_class = IssueListSerializer
     detail_serializer_class = IssueDetailSerializer
 
     def get_queryset(self):
-        queryset = Issue.objects.all()
+        """
+        Retourne seulement les issues des projets où l'utilisateur est contributeur
+        """
+        user_projects = Contributor.objects.filter(
+            user=self.request.user
+        ).values_list('project_id', flat=True)
+
+        queryset = Issue.objects.filter(project_id__in=user_projects).select_related('project', 'author')
+
+        # Filtrage par projet si spécifié dans les paramètres GET
         project_id = self.request.GET.get('project_id')
         if project_id is not None:
             queryset = queryset.filter(project_id=project_id)
@@ -72,8 +73,8 @@ class IssueViewset(ModelViewSet):
         return super().get_serializer_class()
 
 
-class CommentViewset(ModelViewSet):
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+class CommentViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated, IsProjectContributor, IsOwnerOrReadOnly]
     serializer_class = CommentSerializer
 
     def get_queryset(self):
