@@ -4,7 +4,7 @@ from .models import Contributor
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
-    Permission personnalisée qui permet seulement au propriétaire
+    Permission personnalisée qui permet seulement au propriétaire (author)
     de modifier/supprimer ses objets
     """
 
