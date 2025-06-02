@@ -1,8 +1,12 @@
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from user.permissions import IsOwnerOrSuperUser
+
 from user.serializers import UserSerializer
 from user.models import User
 
@@ -15,14 +19,19 @@ class UserViewset(ModelViewSet):
         Permissions différentes selon l'action
         """
         if self.action == 'create':
-            # Seuls les admins peuvent créer des utilisateurs
-            permission_classes = [IsAdminUser]
+            permission_classes = [AllowAny]
         elif self.action in ['list', 'retrieve']:
             # Tous les utilisateurs connectés peuvent voir les utilisateurs
             permission_classes = [IsAuthenticated]
         elif self.action in ['update', 'partial_update', 'destroy']:
             # Seuls les admins ou le propriétaire peuvent modifier
-            permission_classes = [IsAuthenticated]  # + logique personnalisée
+            permission_classes = [IsAuthenticated, IsOwnerOrSuperUser]
+        elif self.action == 'logout':
+            # Seuls les utilisateurs connectés peuvent se déconnecter
+            permission_classes = [IsAuthenticated]
+        elif self.action == 'me':
+            # Action pour récupérer son propre profil
+            permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsAuthenticated]
 
@@ -34,14 +43,55 @@ class UserViewset(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save()
 
-    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
-    def register(self, request):
-        """Endpoint public pour l'inscription"""
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(
+            {"message": "Utilisateur supprimé avec succès"},
+            status=status.HTTP_204_NO_CONTENT
+        )
+
+    @action(detail=False, methods=['post'])
+    def logout(self, request):
+        """
+        Déconnexion de l'utilisateur actuel avec blacklist du refresh token
+        """
+        try:
+            refresh_token = request.data.get('refresh_token')
+
+            if not refresh_token:
+                return Response(
+                    {'error': 'Le refresh token est requis pour la déconnexion'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Blacklister le refresh token
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
             return Response(
-                {'message': 'Utilisateur créé avec succès', 'user_id': user.id},
-                status=status.HTTP_201_CREATED
+                {
+                    'message': f'Utilisateur {request.user.username} déconnecté avec succès',
+                    'user': request.user.username
+                },
+                status=status.HTTP_200_OK
             )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except TokenError:
+            return Response(
+                {'error': 'Token invalide ou déjà blacklisté'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception:
+            return Response(
+                {'error': 'Erreur lors de la déconnexion'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['get'])
+    def me(self, request):
+        """
+        Récupérer les informations de l'utilisateur connecté
+        """
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)

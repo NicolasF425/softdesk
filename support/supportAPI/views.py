@@ -1,9 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsOwnerOrReadOnly, IsProjectContributor
-from django.shortcuts import get_object_or_404
-from rest_framework.decorators import action
-from rest_framework.response import Response
 from supportAPI.models import Contributor, Project, Issue, Comment
 from supportAPI.serializers import ContributorSerializer
 from supportAPI.serializers import ProjectDetailSerializer, ProjectListSerializer
@@ -24,9 +21,7 @@ class ProjectViewSet(ModelViewSet):
     detail_serializer_class = ProjectDetailSerializer
 
     def get_queryset(self):
-        """
-        Retourne seulement les projets où l'utilisateur est contributeur
-        """
+        """ Retourne les projets où l'utilisateur est contributeur """
         user_projects = Contributor.objects.filter(
             user=self.request.user
         ).values_list('project_id', flat=True)
@@ -55,9 +50,7 @@ class IssueViewSet(ModelViewSet):
     detail_serializer_class = IssueDetailSerializer
 
     def get_queryset(self):
-        """
-        Retourne seulement les issues des projets où l'utilisateur est contributeur
-        """
+        """ Retourne les issues des projets où l'utilisateur est contributeur """
         user_projects = Contributor.objects.filter(
             user=self.request.user
         ).values_list('project_id', flat=True)
@@ -75,38 +68,9 @@ class IssueViewSet(ModelViewSet):
             return self.detail_serializer_class
         return super().get_serializer_class()
 
-    def get_project_from_request(self, request):
-        """Méthode pour récupérer le projet depuis les données de la requête"""
-        project_id = request.data.get('project')
-        if project_id:
-            try:
-                return Project.objects.get(id=project_id)
-            except Project.DoesNotExist:
-                return None
-        return None
-
-    @action(detail=False, methods=['get'])
-    def my_issues(self, request):
-        """
-        Action personnalisée pour récupérer seulement les issues créées par l'utilisateur
-        """
-        issues = self.get_queryset().filter(author=request.user)
-        serializer = self.get_serializer(issues, many=True)
-        return Response(serializer.data)
-
     def perform_create(self, serializer):
-        """
-        Créer une issue en assignant automatiquement l'auteur
-        """
-        # Vérifier que le projet existe et que l'utilisateur en est contributeur
-        project_id = self.request.data.get('project')
-        project = get_object_or_404(Project, id=project_id)
-
-        # Double vérification de sécurité
-        if not Contributor.objects.filter(user=self.request.user, project=project).exists():
-            raise PermissionError("Vous devez être contributeur du projet pour créer une issue.")
-
-        serializer.save(author=self.request.user, project=project)
+        """Créer une issue en assignant automatiquement l'auteur"""
+        serializer.save(author=self.request.user)
 
 
 class CommentViewSet(ModelViewSet):
@@ -114,8 +78,21 @@ class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
 
     def get_queryset(self):
-        queryset = Comment.objects.all()
+        user = self.request.user
+
+        # Récupérer les projets où l'utilisateur est contributeur
+        user_projects = Contributor.objects.filter(
+            user=user
+        ).values_list('project_id', flat=True)
+
+        # Filtrer les commentaires des issues de ces projets
+        queryset = Comment.objects.filter(
+            issue__project_id__in=user_projects
+        ).select_related('issue', 'author', 'issue__project')
+
+        # Filtrage par issue_id
         issue_id = self.request.GET.get('issue_id')
         if issue_id is not None:
             queryset = queryset.filter(issue_id=issue_id)
+
         return queryset
