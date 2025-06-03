@@ -9,12 +9,19 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'age', 'created_time', 'password', 'password2']
+        fields = ['id', 'username', 'birthdate', 'created_time', 'password', 'password2', 'can_be_contacted',
+                  'can_data_be_shared']
         read_only_fields = ['created_time']
 
     def validate(self, attrs):
-        if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError({"password": "Les mots de passe ne correspondent pas."})
+        password = attrs.get('password')
+        password2 = attrs.get('password2')
+
+        # Vérifier seulement si les deux mots de passe sont fournis
+        if password and password2:
+            if password != password2:
+                raise serializers.ValidationError({"password": "Les mots de passe ne correspondent pas."})
+
         return attrs
 
     def create(self, validated_data):
@@ -24,7 +31,7 @@ class UserSerializer(serializers.ModelSerializer):
         # Créer l'utilisateur
         user = User.objects.create(
             username=validated_data['username'],
-            age=validated_data.get('age'),
+            birthdate=validated_data.get('birthdate'),
             # Ajoutez d'autres champs si nécessaire
         )
 
