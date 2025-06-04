@@ -59,3 +59,27 @@ class IsProjectContributor(permissions.BasePermission):
         elif hasattr(obj, 'issue'):  # Comment
             return obj.issue.project
         return None
+
+
+class IsProjectOwnerOrContributor(permissions.BasePermission):
+    """
+    Permission pour les projets :
+    - Lecture : contributeurs du projet
+    - Écriture : seulement l'auteur
+    """
+
+    def has_object_permission(self, request, view, obj):
+        # Vérifier que l'utilisateur est contributeur
+        is_contributor = Contributor.objects.filter(
+            user=request.user,
+            project=obj
+        ).exists()
+
+        if not is_contributor:
+            return False
+
+        # Pour les modifications, seul l'auteur peut modifier
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        return obj.author == request.user
