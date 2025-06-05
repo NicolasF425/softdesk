@@ -14,7 +14,7 @@ class ProjectAdmin(admin.ModelAdmin):
 
 class IssueAdmin(admin.ModelAdmin):
 
-    list_display = ('id', 'author', 'description')
+    list_display = ('id', 'project', 'author', 'description')
 
 
 class CommentAdmin(admin.ModelAdmin):

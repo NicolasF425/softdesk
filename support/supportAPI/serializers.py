@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from supportAPI.models import User, Contributor, Project, Issue, Comment
+from supportAPI.models import Contributor, Project, Issue, Comment
 
 
 class ContributorSerializer(serializers.ModelSerializer):
@@ -11,9 +11,6 @@ class ContributorSerializer(serializers.ModelSerializer):
 
 
 class ProjectDetailSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all()
-    )
 
     class Meta:
         model = Project
@@ -22,9 +19,6 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
 
 
 class ProjectListSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all()
-    )
 
     class Meta:
         model = Project
@@ -33,9 +27,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
 
 
 class IssueDetailSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all()
-    )
+
     project = serializers.PrimaryKeyRelatedField(
         queryset=Project.objects.all()
     )
@@ -48,9 +40,7 @@ class IssueDetailSerializer(serializers.ModelSerializer):
 
 
 class IssueListSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all()
-    )
+
     project = serializers.PrimaryKeyRelatedField(
         queryset=Project.objects.all()
     )

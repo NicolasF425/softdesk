@@ -21,15 +21,10 @@ class ProjectViewSet(ModelViewSet):
     detail_serializer_class = ProjectDetailSerializer
 
     def get_queryset(self):
-        """ Retourne les projets où l'utilisateur est contributeur """
-        user_projects = Contributor.objects.filter(
-            user=self.request.user
-        ).values_list('project_id', flat=True)
-
-        return Project.objects.filter(id__in=user_projects)
+        return Project.objects.all()
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'update', 'partial_update']:
+        if self.action in ['create', 'retrieve', 'update', 'partial_update']:
             return self.detail_serializer_class
         return super().get_serializer_class()
 
@@ -79,23 +74,9 @@ class ProjectIssueViewSet(ModelViewSet):
     detail_serializer_class = IssueDetailSerializer
 
     def get_queryset(self):
-        """ Retourne les issues des projets où l'utilisateur est contributeur """
-        user_projects = Contributor.objects.filter(
-            user=self.request.user
-        ).values_list('project_id', flat=True)
-
-        queryset = Issue.objects.filter(project_id__in=user_projects).select_related('project', 'author')
-
-        # Filtrage par projet si spécifié dans les paramètres GET
-        project_id = self.request.GET.get('project_id')
-        if project_id is not None:
-            queryset = queryset.filter(project_id=project_id)
+        project_pk = self.kwargs.get('project_pk')  # Récupération de l'id depuis l'URL
+        queryset = Issue.objects.filter(project_id=project_pk)
         return queryset
-
-    def get_serializer_class(self):
-        if self.action in ['retrieve', 'update', 'partial_update']:
-            return self.detail_serializer_class
-        return super().get_serializer_class()
 
 
 class CommentViewSet(ModelViewSet):
@@ -132,21 +113,7 @@ class IssueCommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
 
     def get_queryset(self):
-        user = self.request.user
 
-        # Récupérer les projets où l'utilisateur est contributeur
-        user_projects = Contributor.objects.filter(
-            user=user
-        ).values_list('project_id', flat=True)
-
-        # Filtrer les commentaires des issues de ces projets
-        queryset = Comment.objects.filter(
-            issue__project_id__in=user_projects
-        ).select_related('issue', 'author', 'issue__project')
-
-        # Filtrage par issue_id
-        issue_id = self.request.GET.get('issue_id')
-        if issue_id is not None:
-            queryset = queryset.filter(issue_id=issue_id)
-
+        issue_pk = self.kwargs.get('project_pk')  # Récupération de l'id depuis l'URL
+        queryset = Comment.objects.filter(issue_id=issue_pk)
         return queryset

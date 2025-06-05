@@ -18,9 +18,11 @@ class User(AbstractUser):
         return None
 
     def save(self, *args, **kwargs):
-        # Forcer can_data_be_shared à False si l'utilisateur a moins de 15 ans
+        # Forcer et can_be_contacted can_data_be_shared à False
+        # si l'utilisateur a moins de 15 ans
         age = self.calc_age()
         if age is not None and age < 15:
+            self.can_be_contacted = False
             self.can_data_be_shared = False
 
         super().save(*args, **kwargs)

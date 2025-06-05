@@ -5,8 +5,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from user.permissions import IsOwnerOrSuperUser
+from django.db import models
 
+from user.permissions import IsOwnerOrSuperUser
 from user.serializers import UserSerializer
 from user.models import User
 
@@ -38,7 +39,25 @@ class UserViewset(ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):
-        return User.objects.all()
+        """
+        Filtre les utilisateurs selon l'action et les permissions
+        """
+        if self.action in ['list']:
+            # Pour la liste, ne montrer que les utilisateurs qui acceptent le partage
+            return User.objects.filter(can_data_be_shared=True)
+        elif self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
+            # Pour les actions sur un utilisateur spécifique, permettre l'accès
+            # si c'est le propriétaire ou un admin
+            if self.request.user.is_superuser:
+                return User.objects.all()
+            else:
+                # L'utilisateur peut accéder à son propre profil même si can_data_be_shared=False
+                return User.objects.filter(
+                    models.Q(can_data_be_shared=True) |
+                    models.Q(id=self.request.user.id)
+                )
+        else:
+            return User.objects.all()
 
     def perform_create(self, serializer):
         serializer.save()
