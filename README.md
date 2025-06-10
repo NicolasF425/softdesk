@@ -54,6 +54,10 @@ Création et listing des Comment : ...api/comment/
 
 Modification et suppression d'un Comment : .../api/comment/id_comment/
 
+Liste des issue d'un projet: ...api/project/project_id/issue/ 
+
+Liste des comment d'une issue : ...api/issue/issue_id/comment/ 
+
 # Utilisation du token JWT
 
 .../api/token/ pour demander un token au serveur
